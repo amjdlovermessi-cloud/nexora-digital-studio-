@@ -4,7 +4,57 @@ body{min-height:100vh}.admin-wrap{width:min(1050px,94%);margin:35px auto}.admin-
 </style></head><body><header class="wrap nav"><a class="brand" href="index.html"><img src="assets/logo.svg"><span>NEXORA<small>DIGITAL STUDIO</small></span></a><a href="index.html" class="link">العودة للموقع ↗</a></header>
 <main class="admin-wrap"><div class="admin-head"><div><label>CONTROL CENTER</label><h1 style="font-size:34px;margin:5px 0">لوحة إدارة NEXORA</h1><p>إدارة القوالب والخدمات ومحتوى الموقع.</p></div><button id="logout" class="hidden">تسجيل الخروج</button></div>
 <section id="login" class="panel"><h2>تسجيل دخول الإدارة</h2><p>الدخول متاح لحساب مدير المنصة فقط.</p><form id="loginForm" class="form-grid"><label class="field">البريد الإلكتروني<input id="email" type="email" required autocomplete="username"></label><label class="field">كلمة المرور<input id="password" type="password" required autocomplete="current-password"></label><div class="field full"><button class="btn" type="submit">دخول آمن</button><div id="loginMsg" class="notice"></div></div></form></section>
-<section id="dashboard" class="hidden"><div class="tabs"><button data-tab="templates" class="active">القوالب</button><button data-tab="services">الخدمات</button><button data-tab="settings">إعدادات الموقع</button></div>
+<section id="dashboard" class="hidden">
+<div class="panel" style="margin-bottom:14px"><h2 style="margin:0 0 6px">مركز أعمال NEXORA</h2><p style="margin:0">إدارة المنتجات البرمجية والعملاء والاشتراكات من مكان واحد.</p></div>
+<div class="tabs">
+<button data-tab="products" class="active">المنتجات والأنظمة</button>
+<button data-tab="plans">الباقات والأسعار</button>
+<button data-tab="customers">العملاء</button>
+<button data-tab="subscriptions">الاشتراكات والتفعيل</button>
+<button data-tab="templates">نماذج الأعمال</button>
+<button data-tab="services">خدمات الشركة</button>
+<button data-tab="settings">إعدادات الموقع</button>
+</div>
+<section id="products" class="panel tab-panel"><h2>المنتجات والأنظمة</h2><p>أضف منتجاً رقمياً جديداً مثل المنيو الإلكتروني أو نظام العيادات أو الصيدليات.</p>
+<form id="productForm" class="form-grid"><input type="hidden" id="pId">
+<label class="field">اسم المنتج<input id="pName" required></label>
+<label class="field">الرابط المختصر<input id="pSlug" required placeholder="digital-menu"></label>
+<label class="field">نوع المنتج<select id="pType"><option value="restaurant_menu">منيو إلكتروني للمطاعم والكافيهات</option><option value="restaurant_system">نظام إدارة مطاعم</option><option value="clinic_system">نظام إدارة عيادات</option><option value="pharmacy_system">نظام إدارة صيدليات</option><option value="custom_system">نظام مخصص</option><option value="other">منتج آخر</option></select></label>
+<label class="field">طريقة البيع<select id="pPricing"><option value="subscription">اشتراك</option><option value="one_time">بيع مرة واحدة</option><option value="both">بيع واشتراك</option><option value="quote">حسب الاتفاق</option></select></label>
+<label class="field">سعر البيع المباشر بالدينار<input id="pPrice" type="number" min="0" step="1"></label>
+<label class="field">حالة المنتج<select id="pStatus"><option value="draft">مسودة</option><option value="published">منشور</option><option value="hidden">مخفي</option></select></label>
+<label class="field full">وصف مختصر<input id="pShort"></label>
+<label class="field full">تفاصيل المنتج<textarea id="pDescription"></textarea></label>
+<label class="field">صورة المنتج<input id="pImage" type="file" accept="image/png,image/jpeg,image/webp"></label>
+<label class="field">ترتيب العرض<input id="pOrder" type="number" value="0"></label>
+<label class="field"><span><input id="pFeatured" type="checkbox" style="width:auto"> منتج مميز</span></label>
+<div class="field full"><button class="btn" type="submit">حفظ المنتج</button><button type="button" id="pReset">تفريغ الحقول</button><div id="pMsg" class="notice"></div></div></form><div id="productList"></div></section>
+<section id="plans" class="panel tab-panel hidden"><h2>الباقات والأسعار</h2><p>أنشئ باقات شهرية أو سنوية أو مخصصة لكل نظام.</p>
+<form id="planForm" class="form-grid"><input type="hidden" id="plId">
+<label class="field full">المنتج<select id="plProduct" required></select></label>
+<label class="field">اسم الباقة<input id="plName" required placeholder="الباقة الشهرية"></label>
+<label class="field">رمز الباقة<input id="plCode" required placeholder="monthly"></label>
+<label class="field">المدة بالأيام<input id="plDuration" type="number" min="1" placeholder="اتركه فارغاً للمدة المفتوحة"></label>
+<label class="field">السعر بالدينار العراقي<input id="plPrice" type="number" min="0" required></label>
+<label class="field full">مميزات الباقة، كل ميزة بسطر<textarea id="plFeatures"></textarea></label>
+<label class="field"><span><input id="plActive" type="checkbox" checked style="width:auto"> الباقة متاحة للبيع</span></label>
+<div class="field full"><button class="btn" type="submit">حفظ الباقة</button><button type="button" id="plReset">تفريغ الحقول</button><div id="plMsg" class="notice"></div></div></form><div id="planList"></div></section>
+<section id="customers" class="panel tab-panel hidden"><h2>العملاء</h2><form id="customerForm" class="form-grid"><input type="hidden" id="cId">
+<label class="field">اسم العميل<input id="cName" required></label><label class="field">رقم الهاتف<input id="cPhone" required></label>
+<label class="field">البريد الإلكتروني<input id="cEmail" type="email"></label><label class="field">اسم النشاط التجاري<input id="cBusiness"></label>
+<label class="field">نوع النشاط<select id="cType"><option value="restaurant">مطعم</option><option value="cafe">كافيه</option><option value="clinic">عيادة</option><option value="pharmacy">صيدلية</option><option value="company">شركة</option><option value="individual">فرد</option><option value="other">أخرى</option></select></label>
+<label class="field full">ملاحظات<textarea id="cNotes"></textarea></label>
+<div class="field full"><button class="btn" type="submit">حفظ العميل</button><button type="button" id="cReset">تفريغ الحقول</button><div id="cMsg" class="notice"></div></div></form><div id="customerList"></div></section>
+<section id="subscriptions" class="panel tab-panel hidden"><h2>الاشتراكات والتفعيل</h2><p>اربط العميل بالمنتج والباقة، وسجّل حالة الدفع والتفعيل.</p>
+<form id="subscriptionForm" class="form-grid">
+<label class="field">العميل<select id="subCustomer" required></select></label><label class="field">المنتج<select id="subProduct" required></select></label>
+<label class="field">الباقة<select id="subPlan"></select></label><label class="field">السعر المتفق عليه بالدينار<input id="subPrice" type="number" min="0" required></label>
+<label class="field">تاريخ البداية<input id="subStart" type="date"></label><label class="field">تاريخ الانتهاء<input id="subEnd" type="date"></label>
+<label class="field">حالة الاشتراك<select id="subStatus"><option value="pending">بانتظار التفعيل</option><option value="active">فعال</option><option value="expired">منتهي</option><option value="suspended">معلّق</option><option value="cancelled">ملغي</option></select></label>
+<label class="field">حالة الدفع<select id="subPayment"><option value="unpaid">غير مدفوع</option><option value="paid">مدفوع</option><option value="partial">مدفوع جزئياً</option><option value="refunded">مسترجع</option></select></label>
+<label class="field">طريقة الدفع<input id="subMethod" placeholder="نقداً، تحويل، ..."></label><label class="field">رقم مرجعي<input id="subRef"></label>
+<label class="field full">ملاحظات<textarea id="subNotes"></textarea></label>
+<div class="field full"><button class="btn" type="submit">إنشاء الاشتراك</button><div id="subMsg" class="notice"></div></div></form><div id="subscriptionList"></div></section>
 <section id="templates" class="panel tab-panel"><h2>إدارة القوالب</h2><form id="templateForm" class="form-grid"><input type="hidden" id="tId"><label class="field">اسم القالب<input id="tTitle" required></label><label class="field">الرابط المختصر (slug)<input id="tSlug" required placeholder="restaurant-demo"></label><label class="field">التصنيف<input id="tCategory" value="general"></label><label class="field">حالة النشر<select id="tStatus"><option value="draft">مسودة</option><option value="published">منشور</option><option value="hidden">مخفي</option></select></label><label class="field full">وصف مختصر<textarea id="tDescription"></textarea></label><label class="field">صورة الغلاف<input id="tImage" type="file" accept="image/png,image/jpeg,image/webp"></label><label class="field">رابط معاينة القالب<input id="tPreview" type="url" placeholder="https://..."></label><label class="field">رابط النسخة التجريبية<input id="tDemo" type="url" placeholder="https://..."></label><label class="field">التقنيات (افصل بينها بفاصلة)<input id="tStack" placeholder="HTML, CSS, JavaScript"></label><label class="field"><span>ترتيب العرض</span><input id="tOrder" type="number" value="0"></label><label class="field"><span><input id="tFeatured" type="checkbox" style="width:auto"> قالب مميز</span></label><div class="field full"><button class="btn" type="submit">حفظ القالب</button><button type="button" id="tReset">تفريغ الحقول</button><div id="tMsg" class="notice"></div></div></form><div id="templateList"></div></section>
 <section id="services" class="panel tab-panel hidden"><h2>إدارة الخدمات</h2><form id="serviceForm" class="form-grid"><input type="hidden" id="sId"><label class="field">اسم الخدمة<input id="sTitle" required></label><label class="field">الرابط المختصر<input id="sSlug" required placeholder="ecommerce"></label><label class="field">الأيقونة (Lucide key)<input id="sIcon" value="sparkles"></label><label class="field">الحالة<select id="sStatus"><option value="draft">مسودة</option><option value="published">منشور</option><option value="hidden">مخفي</option></select></label><label class="field full">وصف مختصر<input id="sShort"></label><label class="field full">الوصف<textarea id="sDescription"></textarea></label><label class="field">صورة الخدمة<input id="sImage" type="file" accept="image/png,image/jpeg,image/webp"></label><label class="field">السعر الابتدائي<input id="sPrice" type="number" min="0" step="0.01"></label><label class="field">العملة<select id="sCurrency"><option>IQD</option><option>USD</option></select></label><label class="field">ترتيب العرض<input id="sOrder" type="number" value="0"></label><label class="field"><span><input id="sFeatured" type="checkbox" style="width:auto"> خدمة مميزة</span></label><div class="field full"><button class="btn" type="submit">حفظ الخدمة</button><button type="button" id="sReset">تفريغ الحقول</button><div id="sMsg" class="notice"></div></div></form><div id="serviceList"></div></section>
 <section id="settings" class="panel tab-panel hidden"><h2>إعدادات الموقع</h2><form id="settingsForm" class="form-grid"><label class="field">اسم الموقع<input id="siteName"></label><label class="field">الشعار النصي<input id="tagline"></label><label class="field">البريد<input id="contactEmail" type="email"></label><label class="field">رابط واتساب<input id="whatsapp"></label><label class="field">رابط إنستغرام<input id="instagram"></label><label class="field">اللغة الافتراضية<select id="locale"><option value="ar">العربية</option><option value="en">English</option></select></label><div class="field full"><button class="btn" type="submit">حفظ الإعدادات</button><div id="settingsMsg" class="notice"></div></div></form></section>
