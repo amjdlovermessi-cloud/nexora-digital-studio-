@@ -44,7 +44,7 @@ async function loadProducts(){
  const {data,error}=await supabase.from('nexora_products').select('*').order('sort_order').order('created_at',{ascending:false});
  if(error){msg('pMsg',error.message);return;}
  products=data||[];
- $('productList').innerHTML=products.length?products.map(x=>'<div class="record">'+(x.image_url?'<img src="'+safe(x.image_url)+'" alt="">':'')+'<div class="meta"><b>'+safe(x.name)+'</b><small>'+safe(productTypeLabel[x.product_type]||x.product_type)+' · '+safe(x.pricing_model)+' · '+safe(x.status)+'</small></div><div class="record-actions"><button data-edit-p="'+x.id+'">تعديل</button><button class="danger" data-delete-p="'+x.id+'">حذف</button></div></div>').join(''):'<p>لا توجد منتجات بعد. أضف أول نظام من النموذج أعلاه.</p>';
+ $('productList').innerHTML=products.length?products.map(x=>'<div class="record">'+(x.image_url?'<img src="'+safe(x.image_url)+'" alt="">':'')+'<div class="meta"><b>'+safe(x.name)+'</b><small>'+safe(productTypeLabel[x.product_type]||x.product_type)+' · '+safe(x.pricing_model)+' · '+safe(x.status)+'</small>'+(x.demo_url?'<small><a href="'+safe(x.demo_url)+'" target="_blank" rel="noopener">فتح القالب ↗</a></small>':'')+'</div><div class="record-actions"><button data-edit-p="'+x.id+'">تعديل</button><button class="danger" data-delete-p="'+x.id+'">حذف</button></div></div>').join(''):'<p>لا توجد منتجات بعد. أضف أول نظام من النموذج أعلاه.</p>';
  document.querySelectorAll('[data-edit-p]').forEach(b=>b.onclick=()=>editProduct(b.dataset.editP));
  document.querySelectorAll('[data-delete-p]').forEach(b=>b.onclick=()=>deleteProduct(b.dataset.deleteP));
  const opts='<option value="">اختر المنتج</option>'+products.map(x=>'<option value="'+x.id+'">'+safe(x.name)+'</option>').join('');
@@ -52,7 +52,7 @@ async function loadProducts(){
 }
 function editProduct(id){
  const x=products.find(v=>v.id===id);if(!x)return;
- $('pId').value=x.id;$('pName').value=x.name;$('pSlug').value=x.slug;$('pType').value=x.product_type;$('pPricing').value=x.pricing_model;$('pPrice').value=x.one_time_price_iqd??'';$('pStatus').value=x.status;$('pShort').value=x.short_description;$('pDescription').value=x.description;$('pOrder').value=x.sort_order;$('pFeatured').checked=x.is_featured;$('pImage').value='';
+ $('pId').value=x.id;$('pName').value=x.name;$('pSlug').value=x.slug;$('pType').value=x.product_type;$('pPricing').value=x.pricing_model;$('pPrice').value=x.one_time_price_iqd??'';$('pStatus').value=x.status;$('pShort').value=x.short_description;$('pDemo').value=x.demo_url||'';$('pDescription').value=x.description;$('pOrder').value=x.sort_order;$('pFeatured').checked=x.is_featured;$('pImage').value='';
  document.querySelector('[data-tab="products"]').click();window.scrollTo({top:0,behavior:'smooth'});
 }
 $('productForm').onsubmit=async e=>{
