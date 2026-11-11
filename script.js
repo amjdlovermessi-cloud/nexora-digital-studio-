@@ -9,7 +9,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 async function loadPublicContent(){
  const [{data:templates},{data:services},{data:settings}]=await Promise.all([
   supabase.from('nexora_templates').select('id,title,slug,description,category,thumbnail_url,preview_url,demo_url,is_featured').eq('status','published').order('sort_order'),
-  supabase.from('nexora_services').select('id,title,short_description,description,icon_key,starting_price,price_currency,is_featured').eq('status','published').order('sort_order'),
+  supabase.from('nexora_services').select('id,title,short_description,description,icon_key,starting_price,price_currency,image_url,is_featured').eq('status','published').order('sort_order'),
   supabase.from('nexora_site_settings').select('*').eq('singleton',true).maybeSingle()
  ]);
  if(settings){document.title=settings.site_name||'NEXORA Digital Studio';const contact=document.querySelector('#contact');if(settings.contact_email){const a=contact.querySelector('.btn');a.href='mailto:'+encodeURIComponent(settings.contact_email)+'?subject=Project%20inquiry';}if(settings.whatsapp_url){const a=document.createElement('a');a.className='btn';a.href=settings.whatsapp_url;a.target='_blank';a.rel='noopener';a.textContent=lang==='ar'?'واتساب ↗':'WhatsApp ↗';contact.appendChild(a);}}
