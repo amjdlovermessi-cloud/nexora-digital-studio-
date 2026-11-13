@@ -134,6 +134,7 @@ async function provisionTenant(subscriptionId){
   const linked=await supabase.from('nexora_subscriptions').update({tenant_id:tenant.id,updated_at:new Date().toISOString()}).eq('id',sub.id);
   if(linked.error)throw linked.error;
  }
+ const revoked=await supabase.from('nexora_tenant_invites').delete().eq('tenant_id',tenant.id).is('redeemed_at',null);if(revoked.error)throw revoked.error;
  const code=crypto.randomUUID().replace(/-/g,'')+crypto.randomUUID().replace(/-/g,'').slice(0,12);
  const invite=await supabase.from('nexora_tenant_invites').insert({tenant_id:tenant.id,invite_code:code,expires_at:new Date(Date.now()+7*86400000).toISOString(),created_by:currentUser.id});
  if(invite.error)throw invite.error;
