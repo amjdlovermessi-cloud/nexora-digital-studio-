@@ -29,7 +29,7 @@ async function start(){
  else {$('auth').classList.remove('hidden');authMode();if(invite){isSignup=true;authMode();}}
 }
 $('authForm').onsubmit=async e=>{e.preventDefault();say('authMsg','جارٍ التحقق...');const email=$('email').value.trim(),password=$('password').value;
- let result=isSignup?await sb.auth.signUp({email,password,options:{emailRedirectTo:location.href}}):await sb.auth.signInWithPassword({email,password});
+ let result=isSignup?await sb.auth.signUp({email,password}):await sb.auth.signInWithPassword({email,password});
  if(result.error){say('authMsg','تعذر إكمال العملية: '+result.error.message);return;}
  if(isSignup&&!result.data.session){say('authMsg','تم إنشاء الحساب. تحقق من بريدك الإلكتروني ثم ارجع إلى رابط الدعوة نفسه وسجل الدخول لإكمال التفعيل.');return;}
  user=result.data.user;await afterLogin();
