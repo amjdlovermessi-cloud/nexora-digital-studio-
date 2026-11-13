@@ -117,11 +117,36 @@ function refreshSubPlans(){
 }
 $('subProduct').onchange=()=>{refreshSubPlans();const p=products.find(x=>x.id===$('subProduct').value);if(p?.one_time_price_iqd)$('subPrice').value=p.one_time_price_iqd;};
 $('subPlan').onchange=()=>{const p=plans.find(x=>x.id===$('subPlan').value);if(p)$('subPrice').value=p.price_iqd;};
+async function provisionTenant(subscriptionId){
+ const sub=subscriptions.find(x=>x.id===subscriptionId);if(!sub)throw new Error('الاشتراك غير موجود');
+ if(sub.status!=='active')throw new Error('فعّل الاشتراك أولاً قبل تجهيز مساحة العميل.');
+ if(sub.ends_at && new Date(sub.ends_at)<new Date())throw new Error('انتهى الاشتراك، جدد المدة أولاً.');
+ const customer=customers.find(x=>x.id===sub.customer_id),product=products.find(x=>x.id===sub.product_id);
+ if(!customer||!product)throw new Error('بيانات العميل أو المنتج غير مكتملة.');
+ let tenant=null;
+ if(sub.tenant_id){const q=await supabase.from('nexora_tenants').select('*').eq('id',sub.tenant_id).maybeSingle();if(q.error)throw q.error;tenant=q.data;}
+ if(!tenant){
+  let type=product.product_type==='clinic_system'?'clinic':product.product_type==='pharmacy_system'?'pharmacy':(product.slug||'').includes('cafe')?'cafe':'restaurant';
+  const suffix=crypto.randomUUID().replace(/-/g,'').slice(0,7);
+  const slug=(product.slug||type)+'-'+suffix;
+  const created=await supabase.from('nexora_tenants').insert({customer_id:customer.id,subscription_id:sub.id,product_type:type,slug,display_name:customer.business_name||customer.full_name,status:'active'}).select('*').single();
+  if(created.error)throw created.error;tenant=created.data;
+  const linked=await supabase.from('nexora_subscriptions').update({tenant_id:tenant.id,updated_at:new Date().toISOString()}).eq('id',sub.id);
+  if(linked.error)throw linked.error;
+ }
+ const code=crypto.randomUUID().replace(/-/g,'')+crypto.randomUUID().replace(/-/g,'').slice(0,12);
+ const invite=await supabase.from('nexora_tenant_invites').insert({tenant_id:tenant.id,invite_code:code,expires_at:new Date(Date.now()+7*86400000).toISOString(),created_by:currentUser.id});
+ if(invite.error)throw invite.error;
+ const link='https://amjdlovermessi-cloud.github.io/nexora-digital-studio-/app/?tenant='+encodeURIComponent(tenant.slug)+'&invite='+encodeURIComponent(code);
+ try{await navigator.clipboard.writeText(link);alert('تم تجهيز مساحة العميل ونسخ رابط التفعيل. صالح لمدة 7 أيام.\\n\\n'+link);}catch{prompt('انسخ رابط تفعيل العميل، صالح لمدة 7 أيام:',link);}
+ await loadSubscriptions();
+}
 async function loadSubscriptions(){
  const {data,error}=await supabase.from('nexora_subscriptions').select('*').order('created_at',{ascending:false});
  if(error){msg('subMsg',error.message);return;}
  subscriptions=data||[];
- $('subscriptionList').innerHTML=subscriptions.length?subscriptions.map(x=>{const customer=customers.find(v=>v.id===x.customer_id),product=products.find(v=>v.id===x.product_id),plan=plans.find(v=>v.id===x.plan_id);return '<div class="record"><div class="meta"><b>'+safe(customer?.full_name||'عميل')+' · '+safe(product?.name||'منتج')+'</b><small>'+safe(plan?.plan_name||'بيع مباشر')+' · '+safe(subStatusLabel[x.status]||x.status)+' · '+safe(paymentLabel[x.payment_status]||x.payment_status)+' · '+Number(x.price_iqd).toLocaleString('en-US')+' د.ع</small></div><div class="record-actions">'+(product?.demo_url?'<a href="'+safe(product.demo_url)+'" target="_blank" rel="noopener">فتح النظام ↗</a>':'')+'<button data-toggle-sub="'+x.id+'">'+(x.status==='active'?'إيقاف مؤقت':'تفعيل')+'</button></div></div>';}).join(''):'<p>لا توجد اشتراكات مسجلة بعد.</p>';
+ $('subscriptionList').innerHTML=subscriptions.length?subscriptions.map(x=>{const customer=customers.find(v=>v.id===x.customer_id),product=products.find(v=>v.id===x.product_id),plan=plans.find(v=>v.id===x.plan_id);return '<div class="record"><div class="meta"><b>'+safe(customer?.full_name||'عميل')+' · '+safe(product?.name||'منتج')+'</b><small>'+safe(plan?.plan_name||'بيع مباشر')+' · '+safe(subStatusLabel[x.status]||x.status)+' · '+safe(paymentLabel[x.payment_status]||x.payment_status)+' · '+Number(x.price_iqd).toLocaleString('en-US')+' د.ع</small>'+(x.tenant_id?'<small>تم تجهيز مساحة العميل ✓</small>':'<small>لم يتم تجهيز مساحة مستقلة بعد</small>')+'</div><div class="record-actions">'+(product?.demo_url?'<a href="'+safe(product.demo_url)+'" target="_blank" rel="noopener">معاينة القالب ↗</a>':'')+(x.tenant_id?'<a href="https://amjdlovermessi-cloud.github.io/nexora-digital-studio-/app/?tenant='+safe((x.tenant_slug||''))+'" target="_blank">فتح بوابة العميل ↗</a>':'')+'<button data-provision-sub="'+x.id+'">'+(x.tenant_id?'إصدار رابط تفعيل جديد':'إنشاء مساحة وتسليم')+'</button><button data-toggle-sub="'+x.id+'">'+(x.status==='active'?'إيقاف مؤقت':'تفعيل')+'</button></div></div>';}).join(''):'<p>لا توجد اشتراكات مسجلة بعد.</p>';
+ document.querySelectorAll('[data-provision-sub]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await provisionTenant(b.dataset.provisionSub);}catch(err){msg('subMsg','تعذر تجهيز مساحة العميل: '+err.message);}finally{b.disabled=false;}});
  document.querySelectorAll('[data-toggle-sub]').forEach(b=>b.onclick=async()=>{const x=subscriptions.find(v=>v.id===b.dataset.toggleSub);if(!x)return;const next=x.status==='active'?'suspended':'active';const {error}=await supabase.from('nexora_subscriptions').update({status:next,updated_at:new Date().toISOString()}).eq('id',x.id);msg('subMsg',error?error.message:'تم تحديث حالة الاشتراك.');await loadSubscriptions();});
 }
 $('subscriptionForm').onsubmit=async e=>{
