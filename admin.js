@@ -120,11 +120,13 @@ $('subPlan').onchange=()=>{const p=plans.find(x=>x.id===$('subPlan').value);if(p
 async function provisionTenant(subscriptionId){
  const sub=subscriptions.find(x=>x.id===subscriptionId);if(!sub)throw new Error('الاشتراك غير موجود');
  if(sub.status!=='active')throw new Error('فعّل الاشتراك أولاً قبل تجهيز مساحة العميل.');
+ if(sub.payment_status!=='paid')throw new Error('لا يمكن تسليم النظام قبل تأكيد استلام المبلغ وتسجيل حالة الدفع: مدفوع.');
  if(sub.ends_at && new Date(sub.ends_at)<new Date())throw new Error('انتهى الاشتراك، جدد المدة أولاً.');
  const customer=customers.find(x=>x.id===sub.customer_id),product=products.find(x=>x.id===sub.product_id);
  if(!customer||!product)throw new Error('بيانات العميل أو المنتج غير مكتملة.');
  let tenant=null;
  if(sub.tenant_id){const q=await supabase.from('nexora_tenants').select('*').eq('id',sub.tenant_id).maybeSingle();if(q.error)throw q.error;tenant=q.data;}
+ else {const q=await supabase.from('nexora_tenants').select('*').eq('subscription_id',sub.id).maybeSingle();if(q.error)throw q.error;tenant=q.data;}
  if(!tenant){
   let type=product.product_type==='clinic_system'?'clinic':product.product_type==='pharmacy_system'?'pharmacy':(product.slug||'').includes('cafe')?'cafe':'restaurant';
   const suffix=crypto.randomUUID().replace(/-/g,'').slice(0,7);
@@ -155,8 +157,13 @@ $('subscriptionForm').onsubmit=async e=>{
  e.preventDefault();msg('subMsg','جارٍ إنشاء الاشتراك...');
  const start=$('subStart').value,end=$('subEnd').value;
  const row={customer_id:$('subCustomer').value,product_id:$('subProduct').value,plan_id:$('subPlan').value||null,price_iqd:Number($('subPrice').value),starts_at:start?new Date(start+'T00:00:00').toISOString():null,ends_at:end?new Date(end+'T23:59:59').toISOString():null,status:$('subStatus').value,payment_status:$('subPayment').value,payment_method:$('subMethod').value.trim()||null,reference_code:$('subRef').value.trim()||null,notes:$('subNotes').value.trim()||null,created_by:currentUser?.id||null};
- const {error}=await supabase.from('nexora_subscriptions').insert(row);
- msg('subMsg',error?'تعذر إنشاء الاشتراك: '+error.message:'تم إنشاء الاشتراك بنجاح.');if(!error){$('subscriptionForm').reset();await loadSubscriptions();}
+ const {data:created,error}=await supabase.from('nexora_subscriptions').insert(row).select('id').single();
+ if(error){msg('subMsg','تعذر إنشاء الاشتراك: '+error.message);return;}
+ $('subscriptionForm').reset();await loadSubscriptions();
+ if(row.status==='active'&&row.payment_status==='paid'){
+  try{await provisionTenant(created.id);msg('subMsg','تم إنشاء الاشتراك وتجهيز مساحة العميل ورابط التفعيل.');}
+  catch(err){msg('subMsg','تم إنشاء الاشتراك، لكن تعذر تجهيز مساحة العميل: '+err.message);}
+ }else{msg('subMsg','تم إنشاء الاشتراك. بعد تأكيد الدفع وتفعيل الاشتراك يمكنك إصدار مساحة العميل ورابط التفعيل.');}
 };
 
 boot();
