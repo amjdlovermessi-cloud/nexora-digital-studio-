@@ -48,10 +48,12 @@ function initQuickSale(){
 }
 function refreshQuickPlans(){
  const pid=$('qsProduct').value,available=plans.filter(p=>p.product_id===pid&&p.is_active);
+ const permanent=$('qsSaleType')?.value==='permanent';$('qsPlan').disabled=permanent;
  $('qsPlan').innerHTML='<option value="">بيع مباشر / بدون باقة</option>'+available.map(p=>'<option value="'+p.id+'">'+safe(p.plan_name)+' · '+Number(p.price_iqd).toLocaleString('en-US')+' د.ع'+(p.duration_days?' · '+p.duration_days+' يوم':'')+'</option>').join('');
 }
 $('qsProduct').onchange=()=>{refreshQuickPlans();const p=products.find(x=>x.id===$('qsProduct').value);if(p?.one_time_price_iqd!=null)$('qsPrice').value=p.one_time_price_iqd;};
 $('qsPlan').onchange=()=>{const p=plans.find(x=>x.id===$('qsPlan').value);if(p)$('qsPrice').value=p.price_iqd;};
+$('qsSaleType').onchange=()=>{if($('qsSaleType').value==='permanent')$('qsPlan').value='';refreshQuickPlans();};
 $('qsReset').onclick=()=>{$('quickSaleForm').reset();$('qsResult').innerHTML='';msg('qsMsg','');refreshQuickPlans();};
 $('quickSaleForm').onsubmit=async e=>{
  e.preventDefault();
@@ -59,9 +61,9 @@ $('quickSaleForm').onsubmit=async e=>{
  try{
   const product=products.find(p=>p.id===$('qsProduct').value);
   if(!product)throw new Error('اختر نظاماً صحيحاً.');
-  const plan=plans.find(p=>p.id===$('qsPlan').value)||null;
+  const saleType=$('qsSaleType').value;const plan=saleType==='permanent'?null:(plans.find(p=>p.id===$('qsPlan').value)||null);
   const startDate=new Date();startDate.setHours(0,0,0,0);
-  const endDate=plan?.duration_days?new Date(startDate.getTime()+plan.duration_days*86400000-1000):null;
+  const endDate=saleType==='permanent'?null:(plan?.duration_days?new Date(startDate.getTime()+plan.duration_days*86400000-1000):null);
   const businessType=product.product_type==='clinic_system'?'clinic':product.product_type==='pharmacy_system'?'pharmacy':(product.slug||'').includes('cafe')?'cafe':product.product_type==='restaurant_system'||product.product_type==='restaurant_menu'?'restaurant':'other';
   const customerRow={full_name:$('qsName').value.trim(),phone:$('qsPhone').value.trim(),email:$('qsEmail').value.trim()||null,business_name:$('qsBusiness').value.trim(),business_type:businessType,notes:null};
   const customerResult=await supabase.from('nexora_customers').insert(customerRow).select('*').single();
@@ -73,10 +75,10 @@ $('quickSaleForm').onsubmit=async e=>{
   await loadCustomers();await loadSubscriptions();
   if(payment==='paid'){
    const link=await provisionTenant(subResult.data.id,{silent:true});
-   if(link){$('qsResult').innerHTML='<div class="panel" style="margin:12px 0;padding:14px"><b>تم إنشاء الاشتراك وتجهيز رابط العميل</b><p><a href="'+safe(link)+'" target="_blank" rel="noopener">'+safe(link)+'</a></p><button type="button" id="qsCopyLink">نسخ الرابط</button></div>';$('qsCopyLink').onclick=()=>navigator.clipboard.writeText(link);}
-   msg('qsMsg','تم البيع وتجهيز مساحة العميل. رابط التفعيل صالح 7 أيام.');
+   if(link){$('qsResult').innerHTML='<div class="panel" style="margin:12px 0;padding:14px"><b>'+(saleType==='permanent'?'تم البيع النهائي وتجهيز النظام مدى الحياة':'تم إنشاء الاشتراك وتجهيز رابط العميل')+'</b><p><a href="'+safe(link)+'" target="_blank" rel="noopener">'+safe(link)+'</a></p><button type="button" id="qsCopyLink">نسخ الرابط</button></div>';$('qsCopyLink').onclick=()=>navigator.clipboard.writeText(link);}
+   msg('qsMsg',saleType==='permanent'?'تم البيع النهائي. لا يوجد تاريخ انتهاء أو تجديد، ورابط التفعيل صالح 7 أيام.':'تم البيع وتجهيز مساحة العميل. رابط التفعيل صالح 7 أيام.');
   }else{
-   msg('qsMsg','تم تسجيل العميل والاشتراك. بعد استلام المبلغ وتأكيده يمكنك إصدار رابط التفعيل من قائمة الاشتراكات.');
+   msg('qsMsg',saleType==='permanent'?'تم تسجيل البيع النهائي بانتظار الدفع. بعد تأكيد استلام المبلغ يصدر رابط النظام الدائم.':'تم تسجيل العميل والاشتراك. بعد استلام المبلغ وتأكيده يمكنك إصدار رابط التفعيل من قائمة الاشتراكات.');
   }
   $('quickSaleForm').reset();refreshQuickPlans();
  }catch(err){msg('qsMsg','تعذر إكمال العملية: '+err.message+' إذا تم حفظ العميل بالفعل فافحص قائمة العملاء قبل إعادة المحاولة.');}
