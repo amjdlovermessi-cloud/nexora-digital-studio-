@@ -67,7 +67,7 @@ $('quickSaleForm').onsubmit=async e=>{
   const customerResult=await supabase.from('nexora_customers').insert(customerRow).select('*').single();
   if(customerResult.error)throw customerResult.error;
   const payment=$('qsPayment').value;
-  const subRow={customer_id:customerResult.data.id,product_id:product.id,plan_id:plan?.id||null,price_iqd:Number($('qsPrice').value),starts_at:startDate.toISOString(),ends_at:endDate?endDate.toISOString():null,status:payment==='paid'?'active':'pending',payment_status:payment,payment_method:$('qsMethod').value.trim()||null,notes:$('qsNotes').value.trim()||null,created_by:currentUser?.id||null};
+  const subRow={customer_id:customerResult.data.id,product_id:product.id,plan_id:plan?.id||null,price_iqd:Number($('qsPrice').value),starts_at:startDate.toISOString(),ends_at:endDate?endDate.toISOString():null,status:'active',payment_status:payment,payment_method:$('qsMethod').value.trim()||null,notes:$('qsNotes').value.trim()||null,created_by:currentUser?.id||null};
   const subResult=await supabase.from('nexora_subscriptions').insert(subRow).select('id').single();
   if(subResult.error)throw subResult.error;
   await loadCustomers();await loadSubscriptions();
