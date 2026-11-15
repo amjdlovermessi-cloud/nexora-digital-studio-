@@ -40,10 +40,55 @@ const productTypeLabel={restaurant_menu:'منيو إلكتروني',restaurant_s
 const subStatusLabel={pending:'بانتظار التفعيل',active:'فعال',expired:'منتهي',suspended:'معلّق',cancelled:'ملغي'};
 const paymentLabel={unpaid:'غير مدفوع',paid:'مدفوع',partial:'مدفوع جزئياً',refunded:'مسترجع'};
 function resetProduct(){$('productForm').reset();$('pId').value='';$('pMsg').textContent='';}
+
+function initQuickSale(){
+ const opts='<option value="">اختر النظام</option>'+products.map(p=>'<option value="'+p.id+'">'+safe(p.name)+'</option>').join('');
+ $('qsProduct').innerHTML=opts;
+ refreshQuickPlans();
+}
+function refreshQuickPlans(){
+ const pid=$('qsProduct').value,available=plans.filter(p=>p.product_id===pid&&p.is_active);
+ $('qsPlan').innerHTML='<option value="">بيع مباشر / بدون باقة</option>'+available.map(p=>'<option value="'+p.id+'">'+safe(p.plan_name)+' · '+Number(p.price_iqd).toLocaleString('en-US')+' د.ع'+(p.duration_days?' · '+p.duration_days+' يوم':'')+'</option>').join('');
+}
+$('qsProduct').onchange=()=>{refreshQuickPlans();const p=products.find(x=>x.id===$('qsProduct').value);if(p?.one_time_price_iqd!=null)$('qsPrice').value=p.one_time_price_iqd;};
+$('qsPlan').onchange=()=>{const p=plans.find(x=>x.id===$('qsPlan').value);if(p)$('qsPrice').value=p.price_iqd;};
+$('qsReset').onclick=()=>{$('quickSaleForm').reset();$('qsResult').innerHTML='';msg('qsMsg','');refreshQuickPlans();};
+$('quickSaleForm').onsubmit=async e=>{
+ e.preventDefault();
+ const btn=$('qsSubmit');btn.disabled=true;$('qsResult').innerHTML='';msg('qsMsg','جارٍ إنشاء العميل والاشتراك...');
+ try{
+  const product=products.find(p=>p.id===$('qsProduct').value);
+  if(!product)throw new Error('اختر نظاماً صحيحاً.');
+  const plan=plans.find(p=>p.id===$('qsPlan').value)||null;
+  const startDate=new Date();startDate.setHours(0,0,0,0);
+  const endDate=plan?.duration_days?new Date(startDate.getTime()+plan.duration_days*86400000-1000):null;
+  const businessType=product.product_type==='clinic_system'?'clinic':product.product_type==='pharmacy_system'?'pharmacy':(product.slug||'').includes('cafe')?'cafe':product.product_type==='restaurant_system'||product.product_type==='restaurant_menu'?'restaurant':'other';
+  const customerRow={full_name:$('qsName').value.trim(),phone:$('qsPhone').value.trim(),email:$('qsEmail').value.trim()||null,business_name:$('qsBusiness').value.trim(),business_type:businessType,notes:null};
+  const customerResult=await supabase.from('nexora_customers').insert(customerRow).select('*').single();
+  if(customerResult.error)throw customerResult.error;
+  const payment=$('qsPayment').value;
+  const subRow={customer_id:customerResult.data.id,product_id:product.id,plan_id:plan?.id||null,price_iqd:Number($('qsPrice').value),starts_at:startDate.toISOString(),ends_at:endDate?endDate.toISOString():null,status:payment==='paid'?'active':'pending',payment_status:payment,payment_method:$('qsMethod').value.trim()||null,notes:$('qsNotes').value.trim()||null,created_by:currentUser?.id||null};
+  const subResult=await supabase.from('nexora_subscriptions').insert(subRow).select('id').single();
+  if(subResult.error)throw subResult.error;
+  await loadCustomers();await loadSubscriptions();
+  if(payment==='paid'){
+   await provisionTenant(subResult.data.id);
+   const latest=subscriptions.find(x=>x.id===subResult.data.id),tenant=tenants.find(t=>t.id===latest?.tenant_id);
+   const link=tenant?'https://amjdlovermessi-cloud.github.io/nexora-digital-studio-/app/?tenant='+encodeURIComponent(tenant.slug):'';
+   if(link){$('qsResult').innerHTML='<div class="panel" style="margin:12px 0;padding:14px"><b>تم إنشاء الاشتراك وتجهيز رابط العميل</b><p><a href="'+safe(link)+'" target="_blank" rel="noopener">'+safe(link)+'</a></p><button type="button" id="qsCopyLink">نسخ الرابط</button></div>';$('qsCopyLink').onclick=()=>navigator.clipboard.writeText(link);}
+   msg('qsMsg','تم البيع وتجهيز مساحة العميل. رابط التفعيل صالح 7 أيام.');
+  }else{
+   msg('qsMsg','تم تسجيل العميل والاشتراك. بعد استلام المبلغ وتأكيده يمكنك إصدار رابط التفعيل من قائمة الاشتراكات.');
+  }
+  $('quickSaleForm').reset();refreshQuickPlans();
+ }catch(err){msg('qsMsg','تعذر إكمال العملية: '+err.message+' إذا تم حفظ العميل بالفعل فافحص قائمة العملاء قبل إعادة المحاولة.');}
+ finally{btn.disabled=false;}
+};
 async function loadProducts(){
  const {data,error}=await supabase.from('nexora_products').select('*').order('sort_order').order('created_at',{ascending:false});
  if(error){msg('pMsg',error.message);return;}
  products=data||[];
+ if($('qsProduct'))initQuickSale();
  $('productList').innerHTML=products.length?products.map(x=>'<div class="record">'+(x.image_url?'<img src="'+safe(x.image_url)+'" alt="">':'')+'<div class="meta"><b>'+safe(x.name)+'</b><small>'+safe(productTypeLabel[x.product_type]||x.product_type)+' · '+safe(x.pricing_model)+' · '+safe(x.status)+'</small>'+(x.demo_url?'<small><a href="'+safe(x.demo_url)+'" target="_blank" rel="noopener">فتح القالب ↗</a></small>':'')+'</div><div class="record-actions"><button data-edit-p="'+x.id+'">تعديل</button><button class="danger" data-delete-p="'+x.id+'">حذف</button></div></div>').join(''):'<p>لا توجد منتجات بعد. أضف أول نظام من النموذج أعلاه.</p>';
  document.querySelectorAll('[data-edit-p]').forEach(b=>b.onclick=()=>editProduct(b.dataset.editP));
  document.querySelectorAll('[data-delete-p]').forEach(b=>b.onclick=()=>deleteProduct(b.dataset.deleteP));
@@ -74,6 +119,7 @@ async function loadPlans(){
  const {data,error}=await supabase.from('nexora_product_plans').select('*').order('sort_order').order('created_at',{ascending:false});
  if(error){msg('plMsg',error.message);return;}
  plans=data||[];
+ if($('qsProduct'))refreshQuickPlans();
  $('planList').innerHTML=plans.length?plans.map(x=>{const p=products.find(v=>v.id===x.product_id);return '<div class="record"><div class="meta"><b>'+safe(x.plan_name)+'</b><small>'+safe(p?.name||'منتج غير معروف')+' · '+Number(x.price_iqd).toLocaleString('en-US')+' د.ع · '+(x.duration_days?x.duration_days+' يوم':'مدة مفتوحة')+' · '+(x.is_active?'متاحة':'متوقفة')+'</small></div><div class="record-actions"><button data-edit-pl="'+x.id+'">تعديل</button><button class="danger" data-delete-pl="'+x.id+'">حذف</button></div></div>';}).join(''):'<p>لا توجد باقات مضافة بعد.</p>';
  document.querySelectorAll('[data-edit-pl]').forEach(b=>b.onclick=()=>editPlan(b.dataset.editPl));
  document.querySelectorAll('[data-delete-pl]').forEach(b=>b.onclick=()=>deletePlan(b.dataset.deletePl));
