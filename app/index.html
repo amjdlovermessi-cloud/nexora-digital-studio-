@@ -49,7 +49,7 @@ $('authForm').onsubmit=async e=>{
    result=await sb.auth.signInWithPassword({email:syntheticEmail(username),password});
   }else if(method==='phone'){
    const phone=normalizedPhone(identifier);
-   if(!/^\\+[1-9]\\d{7,14}$/.test(phone)){say('authMsg','أدخل رقم الهاتف مع رمز الدولة، مثال: +9647XXXXXXXXX');return;}
+   if(!/^\+[1-9]\d{7,14}$/.test(phone)){say('authMsg','أدخل رقم الهاتف مع رمز الدولة، مثال: +9647XXXXXXXXX');return;}
    result=isSignup?await sb.auth.signUp({phone,password}):await sb.auth.signInWithPassword({phone,password});
    if(isSignup&&!result.error&&!result.data.session){
     pendingPhone=phone;$('authForm').classList.add('hidden');$('phoneOtpForm').classList.remove('hidden');say('phoneOtpMsg','أرسلنا رمز تحقق إلى هاتفك. أدخله لإكمال إنشاء الحساب.');return;
