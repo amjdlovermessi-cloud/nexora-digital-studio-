@@ -72,9 +72,7 @@ $('quickSaleForm').onsubmit=async e=>{
   if(subResult.error)throw subResult.error;
   await loadCustomers();await loadSubscriptions();
   if(payment==='paid'){
-   await provisionTenant(subResult.data.id);
-   const latest=subscriptions.find(x=>x.id===subResult.data.id),tenant=tenants.find(t=>t.id===latest?.tenant_id);
-   const link=tenant?'https://amjdlovermessi-cloud.github.io/nexora-digital-studio-/app/?tenant='+encodeURIComponent(tenant.slug):'';
+   const link=await provisionTenant(subResult.data.id,{silent:true});
    if(link){$('qsResult').innerHTML='<div class="panel" style="margin:12px 0;padding:14px"><b>تم إنشاء الاشتراك وتجهيز رابط العميل</b><p><a href="'+safe(link)+'" target="_blank" rel="noopener">'+safe(link)+'</a></p><button type="button" id="qsCopyLink">نسخ الرابط</button></div>';$('qsCopyLink').onclick=()=>navigator.clipboard.writeText(link);}
    msg('qsMsg','تم البيع وتجهيز مساحة العميل. رابط التفعيل صالح 7 أيام.');
   }else{
@@ -163,7 +161,7 @@ function refreshSubPlans(){
 }
 $('subProduct').onchange=()=>{refreshSubPlans();const p=products.find(x=>x.id===$('subProduct').value);if(p?.one_time_price_iqd)$('subPrice').value=p.one_time_price_iqd;};
 $('subPlan').onchange=()=>{const p=plans.find(x=>x.id===$('subPlan').value);if(p)$('subPrice').value=p.price_iqd;};
-async function provisionTenant(subscriptionId){
+async function provisionTenant(subscriptionId,options={}){
  const sub=subscriptions.find(x=>x.id===subscriptionId);if(!sub)throw new Error('الاشتراك غير موجود');
  if(sub.status!=='active')throw new Error('فعّل الاشتراك أولاً قبل تجهيز مساحة العميل.');
  if(sub.payment_status!=='paid')throw new Error('لا يمكن تسليم النظام قبل تأكيد استلام المبلغ وتسجيل حالة الدفع: مدفوع.');
@@ -186,8 +184,8 @@ async function provisionTenant(subscriptionId){
  const invite=await supabase.from('nexora_tenant_invites').insert({tenant_id:tenant.id,invite_code:code,expires_at:new Date(Date.now()+7*86400000).toISOString(),created_by:currentUser.id});
  if(invite.error)throw invite.error;
  const link='https://amjdlovermessi-cloud.github.io/nexora-digital-studio-/app/?tenant='+encodeURIComponent(tenant.slug)+'&invite='+encodeURIComponent(code);
- try{await navigator.clipboard.writeText(link);alert('تم تجهيز مساحة العميل ونسخ رابط التفعيل. صالح لمدة 7 أيام.\\n\\n'+link);}catch{prompt('انسخ رابط تفعيل العميل، صالح لمدة 7 أيام:',link);}
- await loadSubscriptions();
+ if(!options.silent){try{await navigator.clipboard.writeText(link);alert('تم تجهيز مساحة العميل ونسخ رابط التفعيل. صالح لمدة 7 أيام.\\n\\n'+link);}catch{prompt('انسخ رابط تفعيل العميل، صالح لمدة 7 أيام:',link);}}
+ await loadSubscriptions();return link;
 }
 async function loadSubscriptions(){
  const {data,error}=await supabase.from('nexora_subscriptions').select('*').order('created_at',{ascending:false});
