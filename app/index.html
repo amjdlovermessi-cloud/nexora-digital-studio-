@@ -9,7 +9,7 @@
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.81.1';
 const sb=createClient('https://gghlmpxmiivrkiltydxf.supabase.co','sb_publishable_-oLYi0Su5SXOGmQBuZcvcw_TIHJ1D8h');
-const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),slug=params.get('tenant'),invite=params.get('invite');
+const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);let slug=params.get('tenant');const invite=params.get('invite');
 const labels={restaurant:'نظام إدارة المطاعم',cafe:'نظام إدارة الكافيهات',clinic:'نظام إدارة العيادات',pharmacy:'نظام إدارة الصيدليات'};
 const configs={
  restaurant:[['home','الرئيسية'],['menu','المنيو الإلكتروني'],['cashier','الكاشير'],['orders','الطلبات'],['tables','الطاولات']],
@@ -64,7 +64,7 @@ $('authForm').onsubmit=async e=>{
 };
 $('phoneOtpForm').onsubmit=async e=>{e.preventDefault();say('authMsg','جارٍ تأكيد رقم الهاتف...');const {data,error}=await sb.auth.verifyOtp({phone:pendingPhone,token:$('phoneOtp').value.trim(),type:'sms'});if(error){say('authMsg','تعذر تأكيد الرقم: '+error.message);return;}user=data.user;await afterLogin();};
 async function afterLogin(){
- if(invite){const {data,error}=await sb.rpc('redeem_nexora_invite',{p_invite_code:invite});if(error){say('authMsg','تعذر تفعيل الدعوة: '+error.message);return;}history.replaceState({},'', '?tenant='+encodeURIComponent(data[0].tenant_slug));}
+ if(invite){const {data,error}=await sb.rpc('redeem_nexora_invite',{p_invite_code:invite});if(error){say('authMsg','تعذر تفعيل الدعوة: '+error.message);return;}slug=data[0].tenant_slug;history.replaceState({},'', '?tenant='+encodeURIComponent(slug));}
  const {data,error}=await sb.from('nexora_tenants').select('*').eq('slug',slug).maybeSingle();
  if(error||!data){say('authMsg','لا تملك صلاحية الدخول إلى هذا النظام أو أن الاشتراك غير فعال. تواصل مع NEXORA.');$('auth').classList.remove('hidden');return;}
  tenant=data;
