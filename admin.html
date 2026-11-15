@@ -7,6 +7,8 @@ body{min-height:100vh}.admin-wrap{width:min(1050px,94%);margin:35px auto}.admin-
 <section id="dashboard" class="hidden">
 <div class="panel" style="margin-bottom:14px"><h2 style="margin:0 0 6px">مركز أعمال NEXORA</h2><p style="margin:0">إدارة المنتجات البرمجية والعملاء والاشتراكات من مكان واحد.</p></div>
 <div class="tabs">
+<button data-tab="quickSale">بيع اشتراك سريع</button>
+
 <button data-tab="products" class="active">المنتجات والأنظمة</button>
 <button data-tab="plans">الباقات والأسعار</button>
 <button data-tab="customers">العملاء</button>
@@ -15,6 +17,20 @@ body{min-height:100vh}.admin-wrap{width:min(1050px,94%);margin:35px auto}.admin-
 <button data-tab="services">خدمات الشركة</button>
 <button data-tab="settings">إعدادات الموقع</button>
 </div>
+<section id="quickSale" class="panel tab-panel hidden"><h2>بيع اشتراك سريع</h2><p>أدخل معلومات العميل والنظام، وسيتم إنشاء الاشتراك ومساحة مستقلة ورابط التفعيل تلقائياً عند تأكيد الدفع.</p>
+<form id="quickSaleForm" class="form-grid">
+<label class="field">نوع النظام / المنتج<select id="qsProduct" required><option value="">اختر النظام</option></select></label>
+<label class="field">الباقة<select id="qsPlan"><option value="">بيع مباشر / بدون باقة</option></select></label>
+<label class="field">اسم العميل<input id="qsName" required></label>
+<label class="field">رقم الهاتف<input id="qsPhone" required inputmode="tel" placeholder="+964..."></label>
+<label class="field">اسم المشروع / النشاط<input id="qsBusiness" required placeholder="اسم العيادة أو الصيدلية أو المطعم"></label>
+<label class="field">البريد الإلكتروني (اختياري)<input id="qsEmail" type="email"></label>
+<label class="field">السعر المتفق عليه بالدينار<input id="qsPrice" type="number" min="0" required></label>
+<label class="field">حالة الدفع<select id="qsPayment"><option value="paid">مدفوع بالكامل</option><option value="unpaid">غير مدفوع</option><option value="partial">مدفوع جزئياً</option></select></label>
+<label class="field">طريقة الدفع<input id="qsMethod" placeholder="نقداً، تحويل، زين كاش..."></label>
+<label class="field">ملاحظات (اختياري)<input id="qsNotes"></label>
+<div class="field full"><button class="btn" type="submit" id="qsSubmit">إنشاء الاشتراك وتجهيز الرابط</button><button type="button" id="qsReset">تفريغ الحقول</button><div id="qsMsg" class="notice"></div><div id="qsResult"></div></div>
+</form></section>
 <section id="products" class="panel tab-panel"><h2>المنتجات والأنظمة</h2><p>أضف منتجاً رقمياً جديداً مثل المنيو الإلكتروني أو نظام العيادات أو الصيدليات.</p>
 <form id="productForm" class="form-grid"><input type="hidden" id="pId">
 <label class="field">اسم المنتج<input id="pName" required></label>
