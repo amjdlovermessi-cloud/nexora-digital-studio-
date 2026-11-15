@@ -3,7 +3,7 @@
 :root{--navy:#101b2b;--teal:#12877d;--bg:#f3f6f8;--ink:#182638;--muted:#728095;--line:#e4eaf0}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,Arial,sans-serif}button,input,select,textarea{font:inherit}button{border:0;border-radius:9px;padding:11px 15px;background:var(--navy);color:#fff;cursor:pointer;font-weight:bold}button.secondary{background:#e8f2f2;color:#126b65}button.danger{background:#a33}.wrap{max-width:1180px;margin:auto;padding:18px}.card,.top,.stat{background:#fff;border:1px solid var(--line);border-radius:15px;padding:17px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font-weight:900}.muted,.hint{color:var(--muted);font-size:12px;line-height:1.8}.layout{display:grid;grid-template-columns:205px 1fr;gap:14px;margin-top:14px}.side{background:#fff;border:1px solid var(--line);border-radius:15px;padding:10px;height:max-content}.side button{display:block;width:100%;text-align:right;background:transparent;color:#4b5a6d;margin:3px 0}.side button.active{background:#e7f6f4;color:#08796f}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}.stat b{display:block;font-size:23px;margin-top:5px}.form{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;align-items:end}.field label{display:block;font-size:12px;font-weight:bold;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;background:white}.field textarea{min-height:65px}.full{grid-column:1/-1}.tablewrap{overflow:auto;margin-top:14px}table{width:100%;border-collapse:collapse;min-width:520px}td,th{text-align:right;padding:10px;border-bottom:1px solid var(--line);font-size:12px}.mutedtag{display:inline-block;padding:5px 9px;border-radius:20px;background:#eaf7f5;color:#08796f;font-size:11px}.hidden{display:none!important}.auth{max-width:520px;margin:50px auto}.auth form{display:grid;gap:10px}.notice{margin-top:9px;font-size:12px;color:#a34;line-height:1.8}.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}.item{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}.item b{display:block;margin-bottom:6px}.actions{display:flex;gap:6px;flex-wrap:wrap}.cartline{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid var(--line)}.foot{text-align:center;padding:20px;color:var(--muted);font-size:11px}@media(max-width:700px){.wrap{padding:10px}.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto}.side button{white-space:nowrap;width:auto}.form{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(3,1fr)}.stat{padding:10px}.stat b{font-size:18px}.top{align-items:flex-start}}
  .password-wrap{position:relative;display:flex;align-items:center}.password-wrap input{width:100%;padding-left:52px!important}.password-toggle{position:absolute;left:5px;top:50%;transform:translateY(-50%);padding:7px 10px;background:transparent;color:#536276;font-size:18px;line-height:1}.password-toggle:hover{background:#eef3f6}</style></head><body><main class="wrap">
 <header class="top"><div><div class="brand">NEXORA</div><div class="muted" id="tenantTitle">بوابة العميل</div></div><div class="actions"><span class="mutedtag" id="tenantType">مساحة خاصة</span><button id="logout" class="secondary hidden">تسجيل الخروج</button></div></header>
-<section id="auth" class="card auth"><h2 id="authTitle">تسجيل الدخول إلى نظامك</h2><p class="muted" id="authIntro">أدخل البريد وكلمة المرور التي أنشأتها عند استلام رابط الدعوة.</p><form id="authForm"><div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" required autocomplete="email"></div><div class="field"><label for="password">كلمة المرور</label><div class="password-wrap"><input id="password" type="password" required minlength="8" autocomplete="current-password"><button id="togglePassword" class="password-toggle" type="button" aria-label="إظهار كلمة المرور" aria-pressed="false">👁</button></div></div><button id="authSubmit">دخول</button><button id="toggleAuth" class="secondary" type="button">إنشاء حساب جديد</button><div id="authMsg" class="notice"></div></form></section>
+<section id="auth" class="card auth"><h2 id="authTitle">تسجيل الدخول إلى نظامك</h2><p class="muted" id="authIntro">أدخل البريد وكلمة المرور التي أنشأتها عند استلام رابط الدعوة.</p><form id="authForm"><div class="field"><label for="authMethod">طريقة الدخول</label><select id="authMethod"><option value="email">البريد الإلكتروني</option><option value="username">اسم المستخدم بدون بريد</option><option value="phone">رقم الهاتف</option></select></div><div class="field"><label id="identifierLabel" for="identifier">البريد الإلكتروني</label><input id="identifier" type="text" required autocomplete="username" placeholder="name@example.com"></div><div class="field"><label for="password">كلمة المرور</label><div class="password-wrap"><input id="password" type="password" required minlength="8" autocomplete="current-password"><button id="togglePassword" class="password-toggle" type="button" aria-label="إظهار كلمة المرور" aria-pressed="false">👁</button></div><div class="hint">8 أحرف على الأقل، وتحتوي حرفاً إنجليزياً صغيراً وكبيراً ورقماً.</div></div><button id="authSubmit">دخول</button><button id="toggleAuth" class="secondary" type="button">إنشاء حساب جديد</button><div id="authMsg" class="notice"></div></form><form id="phoneOtpForm" class="hidden"><div class="field"><label for="phoneOtp">رمز التحقق المرسل برسالة SMS</label><input id="phoneOtp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required></div><button type="submit">تأكيد الرقم وإكمال التفعيل</button><button id="backToAuth" class="secondary" type="button">رجوع</button></form></section>
 <section id="workspace" class="hidden"><div class="stats"><div class="stat"><span class="muted">السجلات</span><b id="totalCount">0</b></div><div class="stat"><span class="muted">نوع النظام</span><b id="typeStat" style="font-size:15px">-</b></div><div class="stat"><span class="muted">حالة الوصول</span><b style="font-size:15px">فعال</b></div></div><div class="layout"><nav class="side" id="tabs"></nav><section class="card" id="panel"></section></div></section>
 <p class="foot">NEXORA Digital Studio · مساحة خاصة بالعميل</p></main>
 <script type="module">
@@ -20,21 +20,49 @@ const configs={
 let isSignup=false,user=null,tenant=null,records=[],active='home',cart=[],editingId=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const say=(id,s)=>$(id).textContent=s||'';
-function authMode(){ $('authTitle').textContent=isSignup?'إنشاء حساب العميل':'تسجيل الدخول إلى نظامك';$('authSubmit').textContent=isSignup?'إنشاء الحساب':'دخول';$('toggleAuth').textContent=isSignup?'لدي حساب بالفعل':'إنشاء حساب جديد';$('authIntro').textContent=invite?'هذا رابط تفعيل خاص بك. أنشئ حسابك بالبريد وكلمة مرور لا تقل عن 8 أحرف.': 'أدخل البريد وكلمة المرور الخاصة بحسابك.';}
+let pendingPhone='';
+function syntheticEmail(username){return username.trim().toLowerCase()+'@nexora-login.invalid';}
+function normalizedPhone(value){let p=value.replace(/[\\s()-]/g,'');if(p.startsWith('00'))p='+'+p.slice(2);if(p.startsWith('07'))p='+964'+p.slice(1);else if(p.startsWith('964'))p='+'+p;return p;}
+function authMode(){const method=$('authMethod').value;$('authTitle').textContent=isSignup?'إنشاء حساب العميل':'تسجيل الدخول إلى نظامك';$('authSubmit').textContent=isSignup?'إنشاء الحساب':'دخول';$('toggleAuth').textContent=isSignup?'لدي حساب بالفعل':'إنشاء حساب جديد';$('authIntro').textContent=invite?'هذا رابط تفعيل خاص بك. أنشئ حساباً ثم أكمل تفعيل الدعوة.':'اختر طريقة الدخول المناسبة لك.';$('identifierLabel').textContent=method==='email'?'البريد الإلكتروني':method==='phone'?'رقم الهاتف':'اسم المستخدم';$('identifier').type=method==='email'?'email':'text';$('identifier').autocomplete=method==='phone'?'tel':method==='username'?'username':'email';$('identifier').placeholder=method==='email'?'name@example.com':method==='phone'?'+9647XXXXXXXXX':'مثال: amjad_2006';}
+$('authMethod').onchange=()=>{authMode();say('authMsg','');};
 $('togglePassword').onclick=()=>{const field=$('password'),show=field.type==='password';field.type=show?'text':'password';$('togglePassword').textContent=show?'🙈':'👁';$('togglePassword').setAttribute('aria-label',show?'إخفاء كلمة المرور':'إظهار كلمة المرور');$('togglePassword').setAttribute('aria-pressed',String(show));};
 $('toggleAuth').onclick=()=>{isSignup=!isSignup;authMode();say('authMsg','');};
+$('backToAuth').onclick=()=>{$('phoneOtpForm').classList.add('hidden');$('authForm').classList.remove('hidden');};
 async function start(){
  if(!slug){say('authMsg','رابط النظام غير مكتمل. اطلب رابطك من NEXORA.');return;}
  const {data:{session}}=await sb.auth.getSession();
  if(session){user=session.user;await afterLogin();}
  else {$('auth').classList.remove('hidden');authMode();if(invite){isSignup=true;authMode();}}
 }
-$('authForm').onsubmit=async e=>{e.preventDefault();say('authMsg','جارٍ التحقق...');const email=$('email').value.trim(),password=$('password').value;
- let result=isSignup?await sb.auth.signUp({email,password}):await sb.auth.signInWithPassword({email,password});
- if(result.error){say('authMsg','تعذر إكمال العملية: '+result.error.message);return;}
- if(isSignup&&!result.data.session){say('authMsg','تم إنشاء الحساب. تحقق من بريدك الإلكتروني، ثم افتح رابط الدعوة نفسه واضغط «لدي حساب بالفعل» وسجّل الدخول لإكمال التفعيل.');return;}
- user=result.data.user;await afterLogin();
+$('authForm').onsubmit=async e=>{
+ e.preventDefault();say('authMsg','جارٍ التحقق...');
+ const method=$('authMethod').value,identifier=$('identifier').value.trim(),password=$('password').value;
+ let result;
+ try{
+  if(method==='username'){
+   const username=identifier.toLowerCase();
+   if(!/^[a-z0-9_.]{3,24}$/.test(username)){say('authMsg','اسم المستخدم يجب أن يكون 3 إلى 24 حرفاً إنجليزياً أو رقماً أو _ أو .');return;}
+   if(isSignup){
+    const {data,error}=await sb.functions.invoke('nexora-username-register',{body:{username,password}});
+    if(error||data?.error){say('authMsg','تعذر إنشاء الحساب: '+(data?.error||error?.message||'حدث خطأ'));return;}
+   }
+   result=await sb.auth.signInWithPassword({email:syntheticEmail(username),password});
+  }else if(method==='phone'){
+   const phone=normalizedPhone(identifier);
+   if(!/^\\+[1-9]\\d{7,14}$/.test(phone)){say('authMsg','أدخل رقم الهاتف مع رمز الدولة، مثال: +9647XXXXXXXXX');return;}
+   result=isSignup?await sb.auth.signUp({phone,password}):await sb.auth.signInWithPassword({phone,password});
+   if(isSignup&&!result.error&&!result.data.session){
+    pendingPhone=phone;$('authForm').classList.add('hidden');$('phoneOtpForm').classList.remove('hidden');say('authMsg','أرسلنا رمز تحقق إلى هاتفك. أدخله لإكمال إنشاء الحساب.');return;
+   }
+  }else{
+   result=isSignup?await sb.auth.signUp({email:identifier,password}):await sb.auth.signInWithPassword({email:identifier,password});
+  }
+  if(result.error){say('authMsg','تعذر إكمال العملية: '+result.error.message);return;}
+  if(isSignup&&method==='email'&&!result.data.session){say('authMsg','تم إنشاء الحساب. تحقق من بريدك الإلكتروني، ثم افتح رابط الدعوة نفسه وسجّل الدخول لإكمال التفعيل.');return;}
+  user=result.data.user;await afterLogin();
+ }catch(err){say('authMsg','تعذر إكمال العملية: '+(err.message||'حدث خطأ غير متوقع'));}
 };
+$('phoneOtpForm').onsubmit=async e=>{e.preventDefault();say('authMsg','جارٍ تأكيد رقم الهاتف...');const {data,error}=await sb.auth.verifyOtp({phone:pendingPhone,token:$('phoneOtp').value.trim(),type:'sms'});if(error){say('authMsg','تعذر تأكيد الرقم: '+error.message);return;}user=data.user;await afterLogin();};
 async function afterLogin(){
  if(invite){const {data,error}=await sb.rpc('redeem_nexora_invite',{p_invite_code:invite});if(error){say('authMsg','تعذر تفعيل الدعوة: '+error.message);return;}history.replaceState({},'', '?tenant='+encodeURIComponent(data[0].tenant_slug));}
  const {data,error}=await sb.from('nexora_tenants').select('*').eq('slug',slug).maybeSingle();
