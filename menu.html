@@ -1,1 +1,66 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>المنيو الإلكتروني</title><style>body{margin:0;background:#f4f6f8;color:#172638;font-family:Tahoma,Arial}.wrap{max-width:900px;margin:auto;padding:18px}.head,.item{background:white;border:1px solid #e4eaf0;border-radius:14px;padding:16px;margin-bottom:12px}.head{text-align:center}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}.item b{display:block;font-size:16px}.price{color:#08796f;font-weight:bold;margin-top:10px}.muted{color:#748197;font-size:12px}@media(max-width:600px){.wrap{padding:10px}}</style></head><body><main class="wrap"><header class="head"><h2 id="name">المنيو</h2><p class="muted">القائمة الرقمية</p></header><div id="menu" class="grid"></div><p id="msg" class="muted"></p></main><script type="module">import{createClient}from'https://esm.sh/@supabase/supabase-js@2.81.1';const sb=createClient('https://gghlmpxmiivrkiltydxf.supabase.co','sb_publishable_-oLYi0Su5SXOGmQBuZcvcw_TIHJ1D8h');const slug=new URLSearchParams(location.search).get('tenant');const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));if(!slug){document.getElementById('msg').textContent='رابط المنيو غير صحيح.';}else{const{data,error}=await sb.from('nexora_public_menus').select('*').eq('tenant_slug',slug);if(error||!data?.length){document.getElementById('msg').textContent='المنيو غير متاح حالياً أو لم تتم إضافة أصناف بعد.';}else{document.getElementById('name').textContent=data[0].display_name;document.title=data[0].display_name+' | المنيو';document.getElementById('menu').innerHTML=data.map(x=>'<article class="item"><b>'+esc(x.data.name)+'</b><span class="muted">'+esc(x.data.category||'')+'</span><div class="price">'+Number(x.data.price||0).toLocaleString('en-US')+' د.ع</div></article>').join('');}}</script></body></html>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101b2b"><title>المنيو الإلكتروني</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6f8;color:#172638;font-family:Tahoma,Arial,sans-serif}
+.wrap{max-width:900px;margin:auto;padding:16px}.head,.item,.cart,.checkout{background:#fff;border:1px solid #e3eaf0;border-radius:15px;padding:16px;margin-bottom:13px}
+.head{text-align:center}.muted{color:#718096;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.item b{display:block;font-size:16px}.price{color:#08796f;font-weight:bold;margin:9px 0}
+button{border:0;border-radius:9px;padding:11px 14px;background:#101b2b;color:#fff;font:inherit;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}.add{width:100%}.line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #edf0f3}
+.qty{display:flex;align-items:center;gap:8px}.qty button{padding:5px 10px}.total{font-size:19px;font-weight:bold;margin:14px 0}
+form{display:grid;gap:11px}.field{display:grid;gap:6px}input,textarea{width:100%;border:1px solid #d9e1e8;border-radius:9px;padding:12px;font:inherit}textarea{min-height:75px;resize:vertical}
+.notice{padding:11px;border-radius:9px;background:#eef7f5;color:#12675f;white-space:pre-wrap}.error{background:#fff0f0;color:#9c2632}
+@media(max-width:600px){.wrap{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.item{padding:12px}}
+</style></head>
+<body><main class="wrap">
+<header class="head"><h2 id="name">المنيو</h2><p class="muted">اختار طلبك وأرسله مباشرة للمطعم</p></header>
+<div id="menu" class="grid"></div>
+<section class="cart"><h3>طلبك الحالي</h3><div id="cartLines" class="muted">السلة فارغة حالياً.</div><div id="cartTotal" class="total">المجموع: 0 د.ع</div></section>
+<section class="checkout"><h3>بيانات التوصيل / الطلب</h3>
+<form id="orderForm">
+<label class="field">الاسم<input id="customer" maxlength="100" required placeholder="اسمك"></label>
+<label class="field">رقم الهاتف<input id="phone" maxlength="40" required inputmode="tel" placeholder="07XXXXXXXXX"></label>
+<label class="field">ملاحظات إضافية (اختياري)<textarea id="notes" maxlength="500" placeholder="العنوان أو تفاصيل إضافية"></textarea></label>
+<button id="submitOrder" type="submit">إرسال الطلب للمطعم</button>
+<div id="msg" class="muted" role="status"></div>
+</form></section>
+</main>
+<script type="module">
+import{createClient}from'https://esm.sh/@supabase/supabase-js@2.81.1';
+const sb=createClient('https://gghlmpxmiivrkiltydxf.supabase.co','sb_publishable_-oLYi0Su5SXOGmQBuZcvcw_TIHJ1D8h');
+const $=id=>document.getElementById(id),slug=new URLSearchParams(location.search).get('tenant');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let menu=[],cart=[];
+function total(){return cart.reduce((s,x)=>s+x.price*x.qty,0)}
+function drawCart(){
+ $('cartLines').innerHTML=cart.length?cart.map(x=>'<div class="line"><span>'+esc(x.name)+'<br><small>'+x.price.toLocaleString('en-US')+' د.ع</small></span><span class="qty"><button type="button" data-minus="'+x.id+'">−</button>'+x.qty+'<button type="button" data-plus="'+x.id+'">+</button></span></div>').join(''):'السلة فارغة حالياً.';
+ $('cartTotal').textContent='المجموع: '+total().toLocaleString('en-US')+' د.ع';
+ document.querySelectorAll('[data-minus]').forEach(b=>b.onclick=()=>{const x=cart.find(v=>v.id===b.dataset.minus);if(x){x.qty--;if(x.qty<1)cart=cart.filter(v=>v.id!==x.id);drawCart();}});
+ document.querySelectorAll('[data-plus]').forEach(b=>b.onclick=()=>{const x=cart.find(v=>v.id===b.dataset.plus);if(x&&x.qty<50){x.qty++;drawCart();}});
+}
+if(!slug){$('msg').textContent='رابط المنيو غير صحيح.';$('submitOrder').disabled=true;}
+else{
+ const{data,error}=await sb.from('nexora_public_menus').select('*').eq('tenant_slug',slug);
+ if(error||!data?.length){$('msg').textContent='المنيو غير متاح حالياً أو لم تتم إضافة أصناف بعد.';$('submitOrder').disabled=true;}
+ else{
+  menu=data;$('name').textContent=data[0].display_name;document.title=data[0].display_name+' | المنيو';
+  $('menu').innerHTML=data.map(x=>'<article class="item"><b>'+esc(x.data.name)+'</b><span class="muted">'+esc(x.data.category||'')+'</span><div class="price">'+Number(x.data.price||0).toLocaleString('en-US')+' د.ع</div><button class="add" type="button" data-add="'+x.id+'">إضافة للطلب</button></article>').join('');
+  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const item=menu.find(x=>x.id===b.dataset.add);if(!item)return;const old=cart.find(x=>x.id===item.id);if(old){if(old.qty<50)old.qty++;}else cart.push({id:item.id,name:item.data.name,price:Number(item.data.price)||0,qty:1});drawCart();});
+ }
+}
+$('orderForm').onsubmit=async e=>{
+ e.preventDefault();if(!cart.length){$('msg').className='notice error';$('msg').textContent='أضف صنفاً واحداً على الأقل.';return;}
+ const btn=$('submitOrder');btn.disabled=true;$('msg').className='muted';$('msg').textContent='جارٍ إرسال طلبك...';
+ try{
+  const{data,error}=await sb.functions.invoke('restaurant-orders',{body:{action:'submit',tenant_slug:slug,customer:$('customer').value.trim(),phone:$('phone').value.trim(),notes:$('notes').value.trim(),items:cart.map(x=>({id:x.id,qty:x.qty}))}});
+  if(error)throw error;if(!data?.ok)throw new Error(data?.error||'تعذر إرسال الطلب.');
+  $('msg').className='notice';$('msg').textContent='تم استلام طلبك بنجاح ✓\nرقم الطلب: '+data.order_number+'\nالمجموع: '+Number(data.total).toLocaleString('en-US')+' د.ع\nسيقوم المطعم بالتواصل معك.';
+  cart=[];drawCart();$('orderForm').reset();
+ }catch(err){$('msg').className='notice error';$('msg').textContent='تعذر إرسال الطلب: '+(err.message||'حاول مرة أخرى.');}
+ finally{btn.disabled=false;}
+};
+drawCart();
+</script></body></html>
