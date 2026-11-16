@@ -40,7 +40,7 @@ function drawCart(){
  $('cartLines').innerHTML=cart.length?cart.map(x=>'<div class="line"><span>'+esc(x.name)+'<br><small>'+x.price.toLocaleString('en-US')+' د.ع</small></span><span class="qty"><button type="button" data-minus="'+x.id+'">−</button>'+x.qty+'<button type="button" data-plus="'+x.id+'">+</button></span></div>').join(''):'السلة فارغة حالياً.';
  $('cartTotal').textContent='المجموع: '+total().toLocaleString('en-US')+' د.ع';
  document.querySelectorAll('[data-minus]').forEach(b=>b.onclick=()=>{const x=cart.find(v=>v.id===b.dataset.minus);if(x){x.qty--;if(x.qty<1)cart=cart.filter(v=>v.id!==x.id);drawCart();}});
- document.querySelectorAll('[data-plus]').forEach(b=>b.onclick=()=>{const x=cart.find(v=>v.id===b.dataset.plus);if(x&&x.qty<50){x.qty++;drawCart();}});
+ document.querySelectorAll('[data-plus]').forEach(b=>b.onclick=()=>{const x=cart.find(v=>v.id===b.dataset.plus);if(x&&x.qty<20){x.qty++;drawCart();}});
 }
 if(!slug){$('msg').textContent='رابط المنيو غير صحيح.';$('submitOrder').disabled=true;}
 else{
@@ -49,7 +49,7 @@ else{
  else{
   menu=data;$('name').textContent=data[0].display_name;document.title=data[0].display_name+' | المنيو';
   $('menu').innerHTML=data.map(x=>'<article class="item"><b>'+esc(x.data.name)+'</b><span class="muted">'+esc(x.data.category||'')+'</span><div class="price">'+Number(x.data.price||0).toLocaleString('en-US')+' د.ع</div><button class="add" type="button" data-add="'+x.id+'">إضافة للطلب</button></article>').join('');
-  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const item=menu.find(x=>x.id===b.dataset.add);if(!item)return;const old=cart.find(x=>x.id===item.id);if(old){if(old.qty<50)old.qty++;}else cart.push({id:item.id,name:item.data.name,price:Number(item.data.price)||0,qty:1});drawCart();});
+  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const item=menu.find(x=>x.id===b.dataset.add);if(!item)return;const old=cart.find(x=>x.id===item.id);if(old){if(old.qty<20)old.qty++;}else cart.push({id:item.id,name:item.data.name,price:Number(item.data.price)||0,qty:1});drawCart();});
  }
 }
 $('orderForm').onsubmit=async e=>{
