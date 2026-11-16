@@ -213,3 +213,17 @@ $('subscriptionForm').onsubmit=async e=>{
 };
 
 boot();
+async function loadTelegramTenants(){
+ const {data,error}=await supabase.from('nexora_tenants').select('id,display_name,slug,product_type,status').in('product_type',['restaurant','cafe']).order('display_name');
+ if(error){msg('tgMsg','تعذر تحميل المطاعم: '+error.message);return;}
+ $('tgTenant').innerHTML='<option value="">اختر المطعم أو الكوفي</option>'+(data||[]).map(t=>'<option value="'+safe(t.id)+'">'+safe(t.display_name)+' · '+safe(t.slug)+'</option>').join('');
+}
+$('telegramForm').onsubmit=async e=>{
+ e.preventDefault();const btn=$('tgSave');btn.disabled=true;msg('tgMsg','جارٍ التحقق من البوت وإرسال رسالة اختبار...');
+ try{
+  const {data,error}=await supabase.functions.invoke('restaurant-orders',{body:{action:'connect',tenant_id:$('tgTenant').value,bot_token:$('tgToken').value.trim(),chat_id:$('tgChat').value.trim()}});
+  if(error)throw error;if(!data?.ok)throw new Error(data?.error||'تعذر ربط البوت.');
+  $('tgToken').value='';msg('tgMsg','تم الربط بنجاح ✓ '+(data.bot_username?'البوت: @'+data.bot_username:'')+' · '+data.tenant+'\nوصلت رسالة اختبار إلى تيليغرام.');
+ }catch(err){msg('tgMsg','تعذر ربط البوت: '+err.message);}
+ finally{btn.disabled=false;}
+};
