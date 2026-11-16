@@ -21,6 +21,7 @@ form{display:grid;gap:11px}.field{display:grid;gap:6px}input,textarea{width:100%
 <section class="cart"><h3>طلبك الحالي</h3><div id="cartLines" class="muted">السلة فارغة حالياً.</div><div id="cartTotal" class="total">المجموع: 0 د.ع</div></section>
 <section class="checkout"><h3>بيانات التوصيل / الطلب</h3>
 <form id="orderForm">
+<label class="field" style="position:absolute;right:-10000px" aria-hidden="true">اترك هذا الحقل فارغاً<input id="website" name="website" tabindex="-1" autocomplete="off"></label>
 <label class="field">الاسم<input id="customer" maxlength="100" required placeholder="اسمك"></label>
 <label class="field">رقم الهاتف<input id="phone" maxlength="40" required inputmode="tel" placeholder="07XXXXXXXXX"></label>
 <label class="field">ملاحظات إضافية (اختياري)<textarea id="notes" maxlength="500" placeholder="العنوان أو تفاصيل إضافية"></textarea></label>
@@ -55,7 +56,7 @@ $('orderForm').onsubmit=async e=>{
  e.preventDefault();if(!cart.length){$('msg').className='notice error';$('msg').textContent='أضف صنفاً واحداً على الأقل.';return;}
  const btn=$('submitOrder');btn.disabled=true;$('msg').className='muted';$('msg').textContent='جارٍ إرسال طلبك...';
  try{
-  const{data,error}=await sb.functions.invoke('restaurant-orders',{body:{action:'submit',tenant_slug:slug,customer:$('customer').value.trim(),phone:$('phone').value.trim(),notes:$('notes').value.trim(),items:cart.map(x=>({id:x.id,qty:x.qty}))}});
+  const{data,error}=await sb.functions.invoke('restaurant-orders',{body:{action:'submit',tenant_slug:slug,customer:$('customer').value.trim(),phone:$('phone').value.trim(),notes:$('notes').value.trim(),website:$('website').value.trim(),items:cart.map(x=>({id:x.id,qty:x.qty}))}});
   if(error)throw error;if(!data?.ok)throw new Error(data?.error||'تعذر إرسال الطلب.');
   $('msg').className='notice';$('msg').textContent='تم استلام طلبك بنجاح ✓\nرقم الطلب: '+data.order_number+'\nالمجموع: '+Number(data.total).toLocaleString('en-US')+' د.ع\nسيقوم المطعم بالتواصل معك.';
   cart=[];drawCart();$('orderForm').reset();
