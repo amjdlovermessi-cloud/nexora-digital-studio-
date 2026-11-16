@@ -58,7 +58,7 @@ $('orderForm').onsubmit=async e=>{
  try{
   const{data,error}=await sb.functions.invoke('restaurant-orders',{body:{action:'submit',tenant_slug:slug,customer:$('customer').value.trim(),phone:$('phone').value.trim(),notes:$('notes').value.trim(),website:$('website').value.trim(),items:cart.map(x=>({id:x.id,qty:x.qty}))}});
   if(error)throw error;if(!data?.ok)throw new Error(data?.error||'تعذر إرسال الطلب.');
-  $('msg').className='notice';$('msg').textContent='تم استلام طلبك بنجاح ✓\nرقم الطلب: '+data.order_number+'\nالمجموع: '+Number(data.total).toLocaleString('en-US')+' د.ع\nسيقوم المطعم بالتواصل معك.';
+  $('msg').className='notice';$('msg').textContent='تم استلام طلبك، وهو الآن بانتظار تأكيد المطعم ✓\nرقم الطلب: '+data.order_number+'\nالمجموع: '+Number(data.total).toLocaleString('en-US')+' د.ع\nسيقوم المطعم بالتواصل معك.';
   cart=[];drawCart();$('orderForm').reset();
  }catch(err){$('msg').className='notice error';$('msg').textContent='تعذر إرسال الطلب: '+(err.message||'حاول مرة أخرى.');}
  finally{btn.disabled=false;}
