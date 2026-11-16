@@ -12,7 +12,7 @@ button{border:0;border-radius:9px;padding:11px 14px;background:#101b2b;color:#ff
 button:disabled{opacity:.55;cursor:wait}.add{width:100%}.line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #edf0f3}
 .qty{display:flex;align-items:center;gap:8px}.qty button{padding:5px 10px}.total{font-size:19px;font-weight:bold;margin:14px 0}
 form{display:grid;gap:11px}.field{display:grid;gap:6px}input,textarea{width:100%;border:1px solid #d9e1e8;border-radius:9px;padding:12px;font:inherit}textarea{min-height:75px;resize:vertical}
-.notice{padding:11px;border-radius:9px;background:#eef7f5;color:#12675f;white-space:pre-wrap}.error{background:#fff0f0;color:#9c2632}
+.notice{padding:11px;border-radius:9px;background:#eef7f5;color:#12675f;white-space:pre-wrap}.error{background:#fff0f0;color:#9c2632}.order-status{display:none;margin-top:12px;padding:14px;border-radius:12px;background:#f0f5fb;border:1px solid #dce7f2}.order-status strong{display:block;margin-bottom:6px}.status-approved{background:#eaf8ef;border-color:#bde5c9;color:#176b35}.status-rejected{background:#fff0f0;border-color:#f1c4c4;color:#9c2632}
 @media(max-width:600px){.wrap{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.item{padding:12px}}
 </style></head>
 <body><main class="wrap">
@@ -26,7 +26,7 @@ form{display:grid;gap:11px}.field{display:grid;gap:6px}input,textarea{width:100%
 <label class="field">رقم الهاتف<input id="phone" maxlength="40" required inputmode="tel" placeholder="07XXXXXXXXX"></label>
 <label class="field">ملاحظات إضافية (اختياري)<textarea id="notes" maxlength="500" placeholder="العنوان أو تفاصيل إضافية"></textarea></label>
 <button id="submitOrder" type="submit">إرسال الطلب للمطعم</button>
-<div id="msg" class="muted" role="status"></div>
+<div id="msg" class="muted" role="status"></div><div id="orderStatus" class="order-status" role="status" aria-live="polite"></div>
 </form></section>
 </main>
 <script type="module">
@@ -34,7 +34,7 @@ import{createClient}from'https://esm.sh/@supabase/supabase-js@2.81.1';
 const sb=createClient('https://gghlmpxmiivrkiltydxf.supabase.co','sb_publishable_-oLYi0Su5SXOGmQBuZcvcw_TIHJ1D8h');
 const $=id=>document.getElementById(id),slug=new URLSearchParams(location.search).get('tenant');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let menu=[],cart=[];
+let menu=[],cart=[],statusTimer=null;
 function total(){return cart.reduce((s,x)=>s+x.price*x.qty,0)}
 function drawCart(){
  $('cartLines').innerHTML=cart.length?cart.map(x=>'<div class="line"><span>'+esc(x.name)+'<br><small>'+x.price.toLocaleString('en-US')+' د.ع</small></span><span class="qty"><button type="button" data-minus="'+x.id+'">−</button>'+x.qty+'<button type="button" data-plus="'+x.id+'">+</button></span></div>').join(''):'السلة فارغة حالياً.';
@@ -58,7 +58,30 @@ $('orderForm').onsubmit=async e=>{
  try{
   const{data,error}=await sb.functions.invoke('restaurant-orders',{body:{action:'submit',tenant_slug:slug,customer:$('customer').value.trim(),phone:$('phone').value.trim(),notes:$('notes').value.trim(),website:$('website').value.trim(),items:cart.map(x=>({id:x.id,qty:x.qty}))}});
   if(error){let detail=error.message||'تعذر الاتصال بالخادم.';try{const payload=await error.context.json();detail=payload.error||detail;}catch{}throw new Error(detail);}if(!data?.ok)throw new Error(data?.error||'تعذر إرسال الطلب.');
-  $('msg').className='notice';$('msg').textContent='تم استلام طلبك، وهو الآن بانتظار تأكيد المطعم ✓\nرقم الطلب: '+data.order_number+'\nالمجموع: '+Number(data.total).toLocaleString('en-US')+' د.ع\nسيقوم المطعم بالتواصل معك.';
+  $('msg').className='notice';$('msg').textContent='تم استلام طلبك بنجاح ✓\\nرقم الطلب: '+data.order_number+'\\nالمجموع: '+Number(data.total).toLocaleString('en-US')+' د.ع';
+  const trackingPhone=$('phone').value.trim();
+  const statusBox=$('orderStatus');statusBox.style.display='block';statusBox.className='order-status';
+  statusBox.innerHTML='<strong>⏳ طلبك قيد المراجعة</strong><span>بانتظار موافقة المطعم. سنحدّث حالة طلبك هنا تلقائياً، لا تغلق الصفحة.</span>';
+  if(statusTimer)clearInterval(statusTimer);
+  let checks=0,finished=false;
+  const checkOrderStatus=async()=>{
+    if(finished)return;
+    checks++;
+    try{
+      const{data:statusData,error:statusError}=await sb.functions.invoke('restaurant-orders',{body:{action:'status',order_id:data.order_id,phone:trackingPhone}});
+      if(!statusError&&statusData?.ok){
+        if(statusData.status==='تم قبول الطلب'){
+          finished=true;clearInterval(statusTimer);statusBox.className='order-status status-approved';
+          statusBox.innerHTML='<strong>✅ تمت الموافقة على طلبك!</strong><span>المطعم وافق على طلبك رقم '+esc(statusData.order_number||data.order_number)+'.</span>';
+        }else if(statusData.status==='تم رفض الطلب'){
+          finished=true;clearInterval(statusTimer);statusBox.className='order-status status-rejected';
+          statusBox.innerHTML='<strong>❌ نعتذر، لم تتم الموافقة على طلبك</strong><span>تم رفض الطلب رقم '+esc(statusData.order_number||data.order_number)+'. يمكنك التواصل مع المطعم للاستفسار.</span>';
+        }
+      }
+    }catch{}
+    if(checks>=120&&!finished){clearInterval(statusTimer);statusBox.querySelector('span').textContent='انتهت مدة المتابعة التلقائية. يرجى تحديث الصفحة عند الحاجة.';}
+  };
+  await checkOrderStatus();statusTimer=setInterval(checkOrderStatus,5000);
   cart=[];drawCart();$('orderForm').reset();
  }catch(err){$('msg').className='notice error';$('msg').textContent='تعذر إرسال الطلب: '+(err.message||'حاول مرة أخرى.');}
  finally{btn.disabled=false;}
