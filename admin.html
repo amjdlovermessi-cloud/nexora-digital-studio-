@@ -9,7 +9,7 @@ body{min-height:100vh}.admin-wrap{width:min(1050px,94%);margin:35px auto}.admin-
 <div class="tabs">
 <button data-tab="quickSale">بيع اشتراك سريع</button>
 
-<button data-tab="products" class="active">المنتجات والأنظمة</button>
+<button data-tab="telegram">ربط بوتات المطاعم</button>\n<button data-tab="products" class="active">المنتجات والأنظمة</button>
 <button data-tab="plans">الباقات والأسعار</button>
 <button data-tab="customers">العملاء</button>
 <button data-tab="subscriptions">الاشتراكات والتفعيل</button>
@@ -32,7 +32,7 @@ body{min-height:100vh}.admin-wrap{width:min(1050px,94%);margin:35px auto}.admin-
 <label class="field">ملاحظات (اختياري)<input id="qsNotes"></label>
 <div class="field full"><button class="btn" type="submit" id="qsSubmit">إنشاء الاشتراك وتجهيز الرابط</button><button type="button" id="qsReset">تفريغ الحقول</button><div id="qsMsg" class="notice"></div><div id="qsResult"></div></div>
 </form></section>
-<section id="products" class="panel tab-panel"><h2>المنتجات والأنظمة</h2><p>أضف منتجاً رقمياً جديداً مثل المنيو الإلكتروني أو نظام العيادات أو الصيدليات.</p>
+<section id="telegram" class="panel tab-panel hidden"><h2>ربط بوت تيليغرام لكل مطعم أو كوفي</h2><p>اربط بوتاً مستقلاً بكل منشأة. التوكن يُرسل إلى الخادم ويُحفظ مشفراً في Supabase Vault ولا يُحفظ في المتصفح أو GitHub.</p><form id="telegramForm" class="form-grid"><label class="field full">المطعم / الكوفي<select id="tgTenant" required><option value="">جارٍ تحميل المنشآت...</option></select></label><label class="field">Bot Token<input id="tgToken" type="password" required autocomplete="new-password" placeholder="الصقه من BotFather"></label><label class="field">Chat ID<input id="tgChat" required inputmode="numeric" placeholder="مثال: 123456789 أو -100..."></label><div class="field full"><button class="btn" type="submit" id="tgSave">التحقق وربط البوت</button><div id="tgMsg" class="notice"></div></div></form><p class="muted">قبل الربط: أنشئ البوت عبر @BotFather، افتح محادثته واضغط Start، ثم استخرج رقم حسابك من @userinfobot وضعه في Chat ID. إذا تريد استقبال الطلبات داخل مجموعة، أضف البوت للمجموعة واستخدم Chat ID الخاص بالمجموعة.</p></section>\n<section id="products" class="panel tab-panel"><h2>المنتجات والأنظمة</h2><p>أضف منتجاً رقمياً جديداً مثل المنيو الإلكتروني أو نظام العيادات أو الصيدليات.</p>
 <form id="productForm" class="form-grid"><input type="hidden" id="pId">
 <label class="field">اسم المنتج<input id="pName" required></label>
 <label class="field">الرابط المختصر<input id="pSlug" required placeholder="digital-menu"></label>
